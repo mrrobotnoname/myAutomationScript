@@ -6,16 +6,21 @@ PROXY_SERVER=""
 PROXY_PORT=""
 SOCKS_PORT=""
 PROXY_URI=""
-
 # --- Functions ---
 
 # Function to get user input
 get_proxy_input() {
+    echo "$PROXY_SERVER"
     echo "This script will set the APT proxy and the GNOME/GTK System Proxy."
+    echo "If you want to use the defult gateway as your PROXY keep the proxy server address empty"
     read -rp "Enter the proxy server address (e.g., proxy.example.com or 192.168.1.1): " PROXY_SERVER
-    read -rp "Enter the proxy port number (e.g., 8080 or 3128): " PROXY_PORT
+    read -rp "Enter the proxy port number (e.g., 10808 or 3128): " PROXY_PORT
     read -rp "Enter the SOCKS5 port number(e.g. 9095) :" SOCKS_PORT
-
+    
+    if [[ -z "$PROXY_SERVER" ]]; then
+	PROXY_SERVER=$(ip r |  grep '^default' | awk '{print $3}')
+	echo "$PROXY_SERVER Address will be used"
+    fi 
     if [[ -z "$PROXY_SERVER" || -z "$PROXY_PORT" || -z "$SOCKS_PORT" ]]; then
         echo "❌ Error: Both server address and port are required."
         exit 1
@@ -90,3 +95,4 @@ echo "GNOME Proxy Mode: $(gsettings get org.gnome.system.proxy mode 2>/dev/null)
 echo "GNOME HTTP Proxy: $(gsettings get org.gnome.system.proxy.http host 2>/dev/null):$(gsettings get org.gnome.system.proxy.http port 2>/dev/null)"
 echo "GNOME SOCKS Proxy: $(gsettings get org.gnome.system.proxy.socks host 2>/dev/null):$(gsettings get org.gnome.system.proxy.socks port 2>/dev/null)"
 echo "Script finished."
+ip r | grep -m 1 '^default' | awk '{print $3}'
