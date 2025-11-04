@@ -45,6 +45,22 @@ set_apt_proxy() {
     fi
 }
 
+set_snap_proxy() {
+    if ![ command -v snap &> /dev/null ]; then
+        return 1
+    fi
+
+    echo "Setting up proxy for snapd"
+    sudo snap set system proxy.http="${PROXY_URI}"
+    sudo snap set system proxy.https="${PROXY_URI}"
+    echo "Snapd Proxy was setup"
+
+    if sudo systemctl restart snapd; then
+        echo "✅snapd is reboot scuccsessfully"
+    else
+        echo "❌snapd didn\'t reboot do it manualy"
+    fi
+}
 # Function to set GNOME System Proxy (using gsettings)
 set_gnome_system_proxy() {
     echo "💻 Setting GNOME/GTK System HTTP/HTTPS Proxy (The 'Network Settings' proxy)..."
@@ -86,11 +102,14 @@ get_proxy_input
 
 set_apt_proxy
 
+set_snap_proxy
+
 set_gnome_system_proxy
 
 echo "--------------------------------------------------------"
 echo "Configuration Summary:"
 echo "APT Proxy: $(cat "$APT_CONF_FILE" 2>/dev/null)"
+echo "snapd Proxy: $(sudo snap get system proxy 2>/dev/null)"
 echo "GNOME Proxy Mode: $(gsettings get org.gnome.system.proxy mode 2>/dev/null)"
 echo "GNOME HTTP Proxy: $(gsettings get org.gnome.system.proxy.http host 2>/dev/null):$(gsettings get org.gnome.system.proxy.http port 2>/dev/null)"
 echo "GNOME SOCKS Proxy: $(gsettings get org.gnome.system.proxy.socks host 2>/dev/null):$(gsettings get org.gnome.system.proxy.socks port 2>/dev/null)"
