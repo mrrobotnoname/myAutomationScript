@@ -92,11 +92,40 @@ set_gnome_system_proxy() {
     echo "💡 You can verify this in your Network Settings panel."
 }
 
+
+
+#turn off the proxy
+
+turn_off_proxy(){
+    if [ -f "$APT_CONF_FILE" ]; then
+        echo "Found the apt proxy."
+        echo "Clearing the proxy file to disable the apt proxy....."
+        sudo truncate -s 0 "$APT_CONF_FILE"
+
+        if [ $? -eq 0 ]; then
+            echo "✅ apt proxy is disabeld successfully."   
+        else
+            echo "❌ Erro. Unable to clear the file"
+        fi
+    else
+        echo "⚠️ Warning: File was not found"
+    fi
+
+    echo "🆑 Turn off the gonome desktop proxy setting"
+    gsettings set org.gnome.system.proxy mode "none"
+
+
+}
+
 # --- Main Script Execution ---
 
-echo "🚀 System Proxy Configuration Script (APT & GNOME/GTK)"
+echo "🚀 System Proxy Configuration Script (APT,SNAP & GNOME/GTK)"
 echo "--------------------------------------------------------"
 
+if [ "$1" -eq -1 ]; then
+    turn_off_proxy
+    exit 1
+fi
 
 get_proxy_input
 
@@ -114,4 +143,3 @@ echo "GNOME Proxy Mode: $(gsettings get org.gnome.system.proxy mode 2>/dev/null)
 echo "GNOME HTTP Proxy: $(gsettings get org.gnome.system.proxy.http host 2>/dev/null):$(gsettings get org.gnome.system.proxy.http port 2>/dev/null)"
 echo "GNOME SOCKS Proxy: $(gsettings get org.gnome.system.proxy.socks host 2>/dev/null):$(gsettings get org.gnome.system.proxy.socks port 2>/dev/null)"
 echo "Script finished."
-ip r | grep -m 1 '^default' | awk '{print $3}'
